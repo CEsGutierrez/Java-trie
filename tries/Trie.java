@@ -1,19 +1,148 @@
 package tries;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import tries.Node.*;
 
 class Trie {
 
-  final 
+   Node root;
   public static void main(String args[]) {
     System.out.println("This is trie.");
     
     Node node = new Node();
-    System.out.println(node.callOut());
   }
+
+  // constructor makes a root node and assigns it as such, the node is empty
+  public void Trie() {
+    root = new Node();
+  }
+
+  public void Trie(String key) {
+    root = new Node(key);
+  }
+
+  public boolean search(String input) {
+    // short circuit in case input being searched is short
+    if (input.length() == 0) {
+      return true;
+    } else if (input.length() == 1) {
+      return (root.equals(input));
+    }
+    
+    if (searchLastMatchValue(input) == (input.length() - 1)) { // indicates that the entire input was matched in the trie
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  /** 
+   * helper method that actually traverses the trie and returns the last index at which the input matched the trie's levels
+   */
+  private int searchLastMatchValue(String targetString) {
+
+    // set-up for bfs to search the trie
+    int inputCounter = 0;
+    List<Node> queue = new ArrayList(){{
+      add(targetString.charAt(0));
+    }};
+    int queueCounter = 0;
+
+    // checks if temp is same as value being searched
+    // if there is a match, it replaces the queue's contents with the next elements array from the node, if there are any
+    while (queue.size() > 0) {
+      Node temp = queue.get(queueCounter);
+      if (temp.getValue().equals(targetString.charAt(inputCounter))) {
+        queue = temp.getNextNodes();
+        inputCounter += 1;
+        queueCounter = 0;
+      } else {
+        queueCounter += 1;
+      }
+    }
+    return inputCounter;
+  }
+
+  /** 
+   * helper method that actually traverses the trie and returns the last node at which the input matched the trie's levels
+   */
+
+  private Node searchLastMatchNode(String targetString) {
+        // set-up for bfs to search the trie
+        int inputCounter = 0;
+        List<Node> queue = new ArrayList(){{
+          add(targetString.charAt(0));
+        }};
+        int queueCounter = 0;
+        Node current = queue.get(queueCounter);
+    
+        // checks if temp is same as value being searched
+        // if there is a match, it replaces the queue's contents with the next elements array from the node, if there are any
+        while (queue.size() > 0) {
+          Node temp = queue.get(queueCounter);
+          queue.remove(queueCounter);
+          if (temp.getValue().equals(targetString.charAt(inputCounter))) {
+            current = temp;
+            queue.clear();
+            queue = temp.getNextNodes();
+            inputCounter += 1;
+            queueCounter = 0;
+
+          } else {
+            queueCounter += 1;
+          }
+        }
+        return current;
+  }
+
+  public void add(String input) {
+    if (input.length() == 0) {
+      return;
+    }
+    
+    Node lastMatchNode = searchLastMatchNode(input);
+    int lastMatchValue = searchLastMatchValue(input);
+
+    // indicates entire string is already contained in the tree
+    if (lastMatchValue == input.length() - 1) {
+      lastMatchNode.endOfWord = true;
+      return;
+    }
+
+
+    // creates a list of nodes for the values that are not already matched
+    List<Node> newNodeList = new ArrayList<>();
+
+    while (lastMatchValue < input.length()) {
+      String value = String.valueOf(input.charAt(lastMatchValue));
+      newNodeList.add(new Node(value));
+      lastMatchValue += 1;
+    }
+
+    // iterates through the list and adds them in sequence to the nextNodes collection for each node
+    //// String "ABC"
+    //// A.nextNodes = [B]
+    //// B.nextNodes = [C]
+
+    Node current = lastMatchNode;
+
+    while (!newNodeList.isEmpty()) {
+      Node temp = newNodeList.get(0);
+      current.nextNodes.add(temp); // adds the new node
+      newNodeList.remove(0); // removes the node from the collection
+      current = temp; // makes current the newly added node
+    }
+
+    current.endOfWord = true;
+
+  }
+
 }
 
 
+// PseudoCode outline for class: 
 
 //Design a data structure that supports adding new words and finding if a string matches any previously added string.
 
