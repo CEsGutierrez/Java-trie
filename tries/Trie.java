@@ -3,114 +3,88 @@ package tries;
 import java.util.ArrayList;
 import java.util.List;
 
-import tries.Node.*;
-
 class Trie {
 
    Node root;
+   TrieAnalyzer analyzer = new TrieAnalyzer();
   public static void main(String args[]) {
+    Trie thisTrie = new Trie();
     System.out.println("This is trie.");
-    
-    Node node = new Node();
+
   }
 
-  // constructor makes a root node and assigns it as such, the node is empty
+  /**
+   * Constructor assigns root as empty node
+   */
   public void Trie() {
     root = new Node();
   }
 
+  /** 
+   * Constructor assigns root as node with a value if one is provided
+   */
   public void Trie(String key) {
     root = new Node(key);
   }
 
-  public boolean search(String input) {
-    // short circuit in case input being searched is short
+  /**
+   * Interprets results from analyzer helper class to determine if the input is a substring in the trie
+   */
+  public boolean containsElementsOf(String input) {
     if (input.length() == 0) {
       return true;
     } else if (input.length() == 1) {
       return (root.equals(input));
     }
+
+    analyzer.searchTrie(input, root);
+
+    // indicates that the entire length of input was traversed and matched 
     
-    if (searchLastMatchValue(input) == (input.length() - 1)) { // indicates that the entire input was matched in the trie
+    if (analyzer.lastIndex == (input.length() - 1)) {
       return true;
     } else {
       return false;
     }
   }
 
-  /** 
-   * helper method that actually traverses the trie and returns the last index at which the input matched the trie's levels
-   */
-  private int searchLastMatchValue(String targetString) {
-
-    // set-up for bfs to search the trie
-    int inputCounter = 0;
-    List<Node> queue = new ArrayList(){{
-      add(targetString.charAt(0));
-    }};
-    int queueCounter = 0;
-
-    // checks if temp is same as value being searched
-    // if there is a match, it replaces the queue's contents with the next elements array from the node, if there are any
-    while (queue.size() > 0) {
-      Node temp = queue.get(queueCounter);
-      if (temp.getValue().equals(targetString.charAt(inputCounter))) {
-        queue = temp.getNextNodes();
-        inputCounter += 1;
-        queueCounter = 0;
-      } else {
-        queueCounter += 1;
-      }
+ /**
+  * Interprets results from analyzer helper class to determine if a string is already stored and not just a substring in the trie using the endOfWord boolean
+  */
+  public boolean containsExactString(String input) {
+    if (input.length() == 0) {
+      return true;
+    } else if (input.length() == 1) {
+      return (root.equals(input));
     }
-    return inputCounter;
+
+    analyzer.searchTrie(input, root);
+
+    return analyzer.lastNode.endOfWord;
   }
 
-  /** 
-   * helper method that actually traverses the trie and returns the last node at which the input matched the trie's levels
+  /**
+   * Adds string to trie if it's not already there, if it's there ands endOfWord flag to the last node
+   * Will iterate through a list of new nodes and add them in sequence to the nextNodes collection for each node
+   *  String "ABC"
+   *  A.nextNodes = [B]
+   *  B.nextNodes = [C]
    */
-
-  private Node searchLastMatchNode(String targetString) {
-        // set-up for bfs to search the trie
-        int inputCounter = 0;
-        List<Node> queue = new ArrayList(){{
-          add(targetString.charAt(0));
-        }};
-        int queueCounter = 0;
-        Node current = queue.get(queueCounter);
-    
-        // checks if temp is same as value being searched
-        // if there is a match, it replaces the queue's contents with the next elements array from the node, if there are any
-        while (queue.size() > 0) {
-          Node temp = queue.get(queueCounter);
-          queue.remove(queueCounter);
-          if (temp.getValue().equals(targetString.charAt(inputCounter))) {
-            current = temp;
-            queue.clear();
-            queue = temp.getNextNodes();
-            inputCounter += 1;
-            queueCounter = 0;
-
-          } else {
-            queueCounter += 1;
-          }
-        }
-        return current;
-  }
-
   public void add(String input) {
     if (input.length() == 0) {
       return;
     }
     
-    Node lastMatchNode = searchLastMatchNode(input);
-    int lastMatchValue = searchLastMatchValue(input);
+    analyzer.searchTrie(input, root);
+
+    Node lastMatchNode = analyzer.lastNode;
+    Integer lastMatchValue = analyzer.lastIndex;
 
     // indicates entire string is already contained in the tree
     if (lastMatchValue == input.length() - 1) {
       lastMatchNode.endOfWord = true;
       return;
     }
-
 
     // creates a list of nodes for the values that are not already matched
     List<Node> newNodeList = new ArrayList<>();
@@ -120,11 +94,6 @@ class Trie {
       newNodeList.add(new Node(value));
       lastMatchValue += 1;
     }
-
-    // iterates through the list and adds them in sequence to the nextNodes collection for each node
-    //// String "ABC"
-    //// A.nextNodes = [B]
-    //// B.nextNodes = [C]
 
     Node current = lastMatchNode;
 
@@ -136,41 +105,5 @@ class Trie {
     }
 
     current.endOfWord = true;
-
   }
-
 }
-
-
-// PseudoCode outline for class: 
-
-//Design a data structure that supports adding new words and finding if a string matches any previously added string.
-
-// PRETEND: ["Angelica", "Angelia", "Martha", "Angel", "Mars", "Mary", "An"]
-
-//TRIE
-//tree is empty
-//start by assigning empty root 
-//begin by adding in first vine 
-
-//will have 3 methods - constructor, add, search
-
-// Add: As we look to add a new word, we iterate over the existing vine's characters and the new word. Either: we run out of one, or they diverge.
-
-//add method: iterate over vine by comparing letter in the vine to the letters in the word in array, node by node, and add diverging nodes as they appear
-
-// until (i = array.length) {
-//  temp = array.delete[0]
-//   Trie.add(temp, trie)  
-//} 
-
-// if trie is empty, add it 
-// make a node for each characters
-// to the root,
-    // root.next = []
-    // root.push(C-node) into next array // NODE method not TRIE method
-// move on to the next characters ("L)"
-// c.push(L-node) into next array
-// keep doing until last character (second "A")
-// keep adding it, 
-// toggle A's endOfWord attribute from false to true
