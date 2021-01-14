@@ -1,47 +1,109 @@
 package tries;
 
-import tries.Node.*;
+import java.util.ArrayList;
+import java.util.List;
 
 class Trie {
 
-  final 
+   Node root;
+   TrieAnalyzer analyzer = new TrieAnalyzer();
   public static void main(String args[]) {
+    Trie thisTrie = new Trie();
     System.out.println("This is trie.");
+
+  }
+
+  /**
+   * Constructor assigns root as empty node
+   */
+  public void Trie() {
+    root = new Node();
+  }
+
+  /** 
+   * Constructor assigns root as node with a value if one is provided
+   */
+  public void Trie(String key) {
+    root = new Node(key);
+  }
+
+  /**
+   * Interprets results from analyzer helper class to determine if the input is a substring in the trie
+   */
+  public boolean containsElementsOf(String input) {
+    if (input.length() == 0) {
+      return true;
+    } else if (input.length() == 1) {
+      return (root.equals(input));
+    }
+
+    analyzer.searchTrie(input, root);
+
+    // indicates that the entire length of input was traversed and matched 
     
-    Node node = new Node();
-    System.out.println(node.callOut());
+    if (analyzer.lastIndex == (input.length() - 1)) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+ /**
+  * Interprets results from analyzer helper class to determine if a string is already stored and not just a substring in the trie using the endOfWord boolean
+  */
+  public boolean containsExactString(String input) {
+    if (input.length() == 0) {
+      return true;
+    } else if (input.length() == 1) {
+      return (root.equals(input));
+    }
+
+    analyzer.searchTrie(input, root);
+
+    return analyzer.lastNode.endOfWord;
+  }
+
+  /**
+   * Adds string to trie if it's not already there, if it's there ands endOfWord flag to the last node
+   * Will iterate through a list of new nodes and add them in sequence to the nextNodes collection for each node
+   *  String "ABC"
+   *  A.nextNodes = [B]
+   *  B.nextNodes = [C]
+   */
+  public void add(String input) {
+    if (input.length() == 0) {
+      return;
+    }
+    
+    analyzer.searchTrie(input, root);
+
+    Node lastMatchNode = analyzer.lastNode;
+    Integer lastMatchValue = analyzer.lastIndex;
+
+    // indicates entire string is already contained in the tree
+    if (lastMatchValue == input.length() - 1) {
+      lastMatchNode.endOfWord = true;
+      return;
+    }
+
+    // creates a list of nodes for the values that are not already matched
+    List<Node> newNodeList = new ArrayList<>();
+
+    while (lastMatchValue < input.length()) {
+      String value = String.valueOf(input.charAt(lastMatchValue));
+      newNodeList.add(new Node(value));
+      lastMatchValue += 1;
+    }
+
+    Node current = lastMatchNode;
+
+    while (!newNodeList.isEmpty()) {
+      Node temp = newNodeList.get(0);
+      current.nextNodes.add(temp); // adds the new node
+      newNodeList.remove(0); // removes the node from the collection
+      current = temp; // makes current the newly added node
+    }
+
+    current.endOfWord = true;
   }
 }
-
-
-
-//Design a data structure that supports adding new words and finding if a string matches any previously added string.
-
-// PRETEND: ["Angelica", "Angelia", "Martha", "Angel", "Mars", "Mary", "An"]
-
-//TRIE
-//tree is empty
-//start by assigning empty root 
-//begin by adding in first vine 
-
-//will have 3 methods - constructor, add, search
-
-// Add: As we look to add a new word, we iterate over the existing vine's characters and the new word. Either: we run out of one, or they diverge.
-
-//add method: iterate over vine by comparing letter in the vine to the letters in the word in array, node by node, and add diverging nodes as they appear
-
-// until (i = array.length) {
-//  temp = array.delete[0]
-//   Trie.add(temp, trie)  
-//} 
-
-// if trie is empty, add it 
-// make a node for each characters
-// to the root,
-    // root.next = []
-    // root.push(C-node) into next array // NODE method not TRIE method
-// move on to the next characters ("L)"
-// c.push(L-node) into next array
-// keep doing until last character (second "A")
-// keep adding it, 
-// toggle A's endOfWord attribute from false to true
